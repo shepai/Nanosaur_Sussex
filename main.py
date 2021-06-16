@@ -31,11 +31,38 @@ camera=cv2.VideoCapture(0) #gather the camera from the input
 #Define required functions for GA
 ###########
 
+def fitness(self):
+    pass
+
+def mutate(self,genotype):
+    pass
+
+def crossover(self,genotype1,genotype2):
+    pass
 
 ###########
-#Define hardware interaction functions
+#Define hardware interaction functions and classes
 ###########
+class motor:
+    def __init__(self,pin1,pin2):
+        self.pin1=pin1
+        self.pin2=pin2
+    def start(self,direction): #accept direction as boolean
+        if direction:
+            pass #forward
+        else:
+            pass #backward
+    def stop(self):
+        pass
 
+def is_obstructed():
+    #check whether the bot is obstructed
+    return False
+
+def return_to_start(moves):
+    #reverse moves
+    #return to start
+    pass
 
 ###########
 #Define agent class
@@ -50,11 +77,24 @@ def getImage(): #return the image
     #add in any preprocessing here
     return copy.deepcopy(frame)
 
+
 ###########
 #Define needed variables
 ###########
+Generations=500
+Rate=0.2
+initial_population=[]
+
+#define motors
+motor1=motor(1,2)
+motor2=motor(3,4)
 
 
 ###########
 #Main loop
 ###########
+
+
+for gen in range(Generations):
+    #perform Reinforcement learning 
+    pass
