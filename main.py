@@ -25,6 +25,9 @@ import cv2
 import numpy as np
 import copy
 
+import Adafruit_GPIO.SPI as SPI
+import Adafruit_SSD1306
+
 camera=cv2.VideoCapture(0) #gather the camera from the input 
 
 ###########
@@ -85,6 +88,20 @@ Generations=500
 Rate=0.2
 initial_population=[]
 
+# Raspberry Pi pin configuration:
+RST = 24
+# Note the following are only used with SPI:
+DC = 23
+SPI_PORT = 0
+SPI_DEVICE = 0
+
+# 128x32 display with hardware I2C:
+disp1 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=1,rst=RST)
+
+# 128x32 display with hardware I2C:
+disp2 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=0,rst=RST)
+
+
 #define motors
 motor1=motor(1,2)
 motor2=motor(3,4)
@@ -93,6 +110,13 @@ motor2=motor(3,4)
 ###########
 #Main loop
 ###########
+
+# Initialize library.
+disp1.begin()
+disp2.begin()
+# Clear display.
+disp.clear()
+disp.display()
 
 
 for gen in range(Generations):
