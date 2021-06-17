@@ -28,7 +28,8 @@ import copy
 import Adafruit_GPIO.SPI as SPI
 import Adafruit_SSD1306
 
-camera=cv2.VideoCapture(0) #gather the camera from the input 
+
+camera=None
 
 ###########
 #Define required functions for GA
@@ -74,6 +75,33 @@ def return_to_start(moves):
 ###########
 #Define image interaction functions
 ###########
+def gstreamer_pipeline(
+    capture_width=3280,
+    capture_height=2464,
+    display_width=820,
+    display_height=616,
+    framerate=21,
+    flip_method=0,
+):
+    return (
+        "nvarguscamerasrc ! "
+        "video/x-raw(memory:NVMM), "
+        "width=(int)%d, height=(int)%d, "
+        "format=(string)NV12, framerate=(fraction)%d/1 ! "
+        "nvvidconv flip-method=%d ! "
+        "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
+        "videoconvert ! "
+        "video/x-raw, format=(string)BGR ! appsink"
+        % (
+            capture_width,
+            capture_height,
+            framerate,
+            flip_method,
+            display_width,
+            display_height,
+        )
+    )
+
 
 def getImage(): #return the image
     _,frame=camera.read()
@@ -101,6 +129,8 @@ disp1 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=1,rst=RST)
 # 128x32 display with hardware I2C:
 disp2 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=0,rst=RST)
 
+#define camera
+camera=cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
 
 #define motors
 motor1=motor(1,2)
