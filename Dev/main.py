@@ -24,6 +24,8 @@ We will use a standard mutation with a guassian, and crossover of genotypes
 import cv2
 import numpy as np
 import copy
+import torch
+import random
 
 import Adafruit_GPIO.SPI as SPI
 import Adafruit_SSD1306
@@ -61,6 +63,42 @@ def return_to_start(moves):
 #Define agent class
 ###########
 
+class Agent:
+    def __init__(self, num_input, num_hiddenLayer, num_output):
+        self.num_input = num_input  #set input number
+        self.num_output = num_output #set ooutput number
+        self.num_genes = (num_input * num_hiddenLayer) + (num_output) + (num_hiddenLayer*num_output)
+        self.num_hidden=num_hiddenLayer
+        self.weights = None
+        self.weights2=None
+        self.bias = None
+
+    def set_genes(self, gene):
+        weight_idxs = self.num_input * self.num_hidden #size of weights to hidden
+        weights2_idxs = self.num_hidden * self.num_output + weight_idxs #size and position
+        bias_idxs = weight_idxs + weights2_idxs + self.num_output #sizes of biases
+        w = gene[0 : weight_idxs].reshape(self.num_hidden, self.num_input)   #merge genes
+        w2 = gene[weight_idxs : weights2_idxs].reshape(self.num_output, self.num_hidden)   #merge genes
+        b = gene[weights2_idxs: bias_idxs].reshape(self.num_output,) #merge genes
+        self.weights = torch.from_numpy(w) #assign weights
+        self.weights2 = torch.from_numpy(w2) #assign weights
+        self.bias = torch.from_numpy(b) #assign biases
+
+    def forward(self, x):
+        x = torch.from_numpy(x).unsqueeze(0)
+        x=torch.mm(x, self.weights.T) #first layer
+        return torch.mm(x,self.weights2.T) + self.bias #secon layer
+        
+    def get_action(self, x):
+        #print(self.forward(x))
+        a=[]
+        for i in list(self.forward(x)[0]):
+            if i > 0: #foward
+                a.append(1)
+            else: #backward
+                a.append(0)
+        return a
+        
 ###########
 #Define image interaction functions
 ###########
@@ -145,13 +183,20 @@ disp2.begin()
 disp.clear()
 disp.display()
 
-ret, frame1 = cap.read()
+ret, frame1 = camera.read()
+
 prvs = cv2.cvtColor(frame1,cv2.COLOR_BGR2GRAY)
+
+pixels=prvs.shape[0:2]
+
+agent=Agent(pixels[0]*pixels[1],100,2) #h*w inputs for pixels
 
 for gen in range(Generations):
     #perform Reinforcement learning 
     current=getImage()
     next = cv2.cvtColor(im2,cv2.COLOR_BGR2GRAY)
     op=getOpticalFlow() #get the optical flow image for input layer
+    op_grey = cv2.cvtColor(op,cv2.COLOR_BGR2GRAY)
+    
     
     prvs = next
