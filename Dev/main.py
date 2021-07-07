@@ -47,17 +47,6 @@ def crossover(self,genotype1,genotype2):
 ###########
 #Define hardware interaction functions and classes
 ###########
-class motor:
-    def __init__(self,pin1,pin2):
-        self.pin1=pin1
-        self.pin2=pin2
-    def start(self,direction): #accept direction as boolean
-        if direction:
-            pass #forward
-        else:
-            pass #backward
-    def stop(self):
-        pass
 
 def is_obstructed():
     #check whether the bot is obstructed
@@ -106,6 +95,7 @@ def gstreamer_pipeline(
 def getImage(): #return the image
     _,frame=camera.read()
     #add in any preprocessing here
+    frame=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
     return copy.deepcopy(frame)
 
 def getOpticalFlow(im1,im2): #get the optical flow from previous, current 
