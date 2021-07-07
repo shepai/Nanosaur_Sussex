@@ -40,11 +40,18 @@ camera=None
 def fitness(self):
     pass
 
-def mutate(self,genotype):
-    pass
+def mutation(gene, mean=0, std=0.1):
+    gene = gene + np.random.normal(mean, std, size=gene.shape) #mutate the gene via normal 
+    # constraint
+    gene[gene > 4] = 4
+    gene[gene < -4] = -4
+    return gene
 
-def crossover(self,genotype1,genotype2):
-    pass
+def crossover(loser, winner, p_crossover=0.5):
+    for i,gene in enumerate(winner):
+      if random.random() <= p_crossover:
+        loser[i] = winner[i]
+    return loser
 
 ###########
 #Define hardware interaction functions and classes
@@ -188,13 +195,21 @@ prvs = cv2.cvtColor(frame1,cv2.COLOR_BGR2GRAY)
 pixels=prvs.shape[0:2]
 
 agent=Agent(pixels[0]*pixels[1],100,2) #h*w inputs for pixels
+pop_size=20
+
+gene_pop = []
+
+for i in range(pop_size): #vary from 10 to 20 depending on purpose of robot
+  gene_pop.append(np.random.normal(0, 0.1, (agent.num_genes)))#create
+
 
 for gen in range(Generations):
     #perform Reinforcement learning 
     current=getImage()
     next = cv2.cvtColor(im2,cv2.COLOR_BGR2GRAY)
     op=getOpticalFlow() #get the optical flow image for input layer
-    op_grey = cv2.cvtColor(op,cv2.COLOR_BGR2GRAY)
+    #op_grey = cv2.cvtColor(op,cv2.COLOR_BGR2GRAY)
+
     
-    
+    cv2.imshow("flow",op) #show grey scale
     prvs = next
