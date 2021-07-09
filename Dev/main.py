@@ -27,9 +27,13 @@ import copy
 import torch
 import random
 
+#from adafruit_motorkit import MotorKit
 import Adafruit_GPIO.SPI as SPI
 import Adafruit_SSD1306
 
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 
 camera=None
 
@@ -138,10 +142,16 @@ def gstreamer_pipeline(
 
 
 def getImage(): #return the image
-    _,frame=camera.read()
-    #add in any preprocessing here
-    frame=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    return copy.deepcopy(frame)
+    if cv2.getWindowProperty("flow", 0) >= 0:
+        _,frame=camera.read()
+        #add in any preprocessing here
+        frame=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+        scale_percent = 50 # percent of original size
+        width = int(frame.shape[1] * scale_percent / 100)
+        height = int(frame.shape[0] * scale_percent / 100)
+        dim = (width, height)
+        frame=cv2.resize(frame,dim,interpolation = cv2.INTER_AREA)
+        return copy.deepcopy(frame)
 
 def getOpticalFlow(im1,im2): #get the optical flow from previous, current 
     flow = cv2.calcOpticalFlowFarneback(im1,im2, None, 0.5, 3, 15, 3, 5, 1.2, 0)
@@ -158,6 +168,8 @@ initial_population=[]
 
 # Raspberry Pi pin configuration:
 RST = 24
+# Raspberry Pi pin configuration:
+RST = 24
 # Note the following are only used with SPI:
 DC = 23
 SPI_PORT = 0
@@ -165,17 +177,15 @@ SPI_DEVICE = 0
 
 # 128x32 display with hardware I2C:
 disp1 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=8,rst=RST)
-
-# 128x32 display with hardware I2C:
-disp2 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=0,rst=RST)
+disp2 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=1,rst=RST)
 
 #define camera
 camera=cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
+while camera.isOpened()==False: pass #wait for it to load
+
 
 #define motors
-motor1=motor(1,2)
-motor2=motor(3,4)
-
+#kit = MotorKit()
 
 ###########
 #Main loop
@@ -185,31 +195,79 @@ motor2=motor(3,4)
 disp1.begin()
 disp2.begin()
 # Clear display.
-disp.clear()
-disp.display()
+disp1.clear()
+disp2.clear()
+disp1.display()
+disp2.display()
 
-ret, frame1 = camera.read()
+# Create blank image for drawing.
+# Make sure to create image with mode '1' for 1-bit color.
+width = disp1.width
+height = disp1.height
+image = Image.new('1', (width, height))
 
-prvs = cv2.cvtColor(frame1,cv2.COLOR_BGR2GRAY)
+# Get drawing object to draw on image.
+draw = ImageDraw.Draw(image)
+
+# Draw a black filled box to clear the image.
+draw.rectangle((0,0,width,height), outline=0, fill=0)
+
+# Draw some shapes.
+# First define some constants to allow easy resizing of shapes.
+padding = 2
+shape_width = 20
+top = padding
+bottom = height-padding
+# Move left to right keeping track of the current x position for drawing shapes.
+x = padding
+
+
+# Load default font.
+font = ImageFont.load_default()
+
+
+# Write two lines of text.
+draw.text((x, top),    'NANOSAUR',  font=font, fill=255)
+draw.text((x, top+20), 'PANORAMASAURUS NX!', font=font, fill=255)
+
+# Display image.
+disp1.image(image)
+disp1.display()
+
+# Display image.
+disp2.image(image)
+disp2.display()
+
+prvs=getImage()
 
 pixels=prvs.shape[0:2]
 
+cv2.namedWindow("norm", pixels)
+cv2.namedWindow("flow", pixels)
+
 agent=Agent(pixels[0]*pixels[1],100,2) #h*w inputs for pixels
-pop_size=20
+pop_size=10
 
 gene_pop = []
 
 for i in range(pop_size): #vary from 10 to 20 depending on purpose of robot
   gene_pop.append(np.random.normal(0, 0.1, (agent.num_genes)))#create
 
+Generations=500
+print("Begin")
+
+
 
 for gen in range(Generations):
     #perform Reinforcement learning 
     current=getImage()
-    next = cv2.cvtColor(im2,cv2.COLOR_BGR2GRAY)
-    op=getOpticalFlow() #get the optical flow image for input layer
+    print("Gen",gen,current.shape)
+    cv2.imshow("norm",current) #show grey scale
+    op=getOpticalFlow(prvs,current) #get the optical flow image for input layer
     #op_grey = cv2.cvtColor(op,cv2.COLOR_BGR2GRAY)
 
     
     cv2.imshow("flow",op) #show grey scale
-    prvs = next
+    prvs = copy.deepcopy(current)
+
+camera.release()
