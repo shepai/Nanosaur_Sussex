@@ -26,6 +26,7 @@ import numpy as np
 import copy
 import torch
 import random
+import time
 
 #from adafruit_motorkit import MotorKit
 import Adafruit_GPIO.SPI as SPI
@@ -238,25 +239,27 @@ disp1.display()
 disp2.image(image)
 disp2.display()
 
+_,frame=camera.read()
+
+
+
+pixels=frame.shape[0:2]
+print(pixels)
+cv2.namedWindow("norm", cv2.WINDOW_AUTOSIZE)
+cv2.namedWindow("flow", cv2.WINDOW_AUTOSIZE)
+
 prvs=getImage()
-
-pixels=prvs.shape[0:2]
-
-cv2.namedWindow("norm", pixels)
-cv2.namedWindow("flow", pixels)
 
 agent=Agent(pixels[0]*pixels[1],100,2) #h*w inputs for pixels
 pop_size=10
 
 gene_pop = []
 
-for i in range(pop_size): #vary from 10 to 20 depending on purpose of robot
-  gene_pop.append(np.random.normal(0, 0.1, (agent.num_genes)))#create
+#for i in range(pop_size): #vary from 10 to 20 depending on purpose of robot
+#  gene_pop.append(np.random.normal(0, 0.1, (agent.num_genes)))#create
 
 Generations=500
 print("Begin")
-
-
 
 for gen in range(Generations):
     #perform Reinforcement learning 
@@ -265,9 +268,12 @@ for gen in range(Generations):
     cv2.imshow("norm",current) #show grey scale
     op=getOpticalFlow(prvs,current) #get the optical flow image for input layer
     #op_grey = cv2.cvtColor(op,cv2.COLOR_BGR2GRAY)
-
     
     cv2.imshow("flow",op) #show grey scale
+    keyCode = cv2.waitKey(30) & 0xFF
+    # Stop the program on the ESC key
+    if keyCode == 27:
+                break
     prvs = copy.deepcopy(current)
 
 camera.release()
