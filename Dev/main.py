@@ -141,10 +141,43 @@ def gstreamer_pipeline(
         )
     )
 
+# deprecated, checks if point in the sphere is in our output
+def isInROI(x,y,R1,R2,Cx,Cy):
+    isInOuter = False
+    isInInner = False
+    xv = x-Cx
+    yv = y-Cy
+    rt = (xv*xv)+(yv*yv)
+    if( rt < R2*R2 ):
+        isInOuter = True
+        if( rt < R1*R1 ):
+            isInInner = True
+    return isInOuter and not isInInner
+# build the mapping
+def buildMap(Ws,Hs,Wd,Hd,R1,R2,Cx,Cy):
+    map_x = np.zeros((Hd,Wd),np.float32)
+    map_y = np.zeros((Hd,Wd),np.float32)
+    for y in range(0,int(Hd-1)):
+        for x in range(0,int(Wd-1)):
+            r = (float(y)/float(Hd))*(R2-R1)+R1
+            theta = (float(x)/float(Wd))*2.0*np.pi
+            xS = Cx+r*np.sin(theta)
+            yS = Cy+r*np.cos(theta)
+            map_x.itemset((y,x),int(xS))
+            map_y.itemset((y,x),int(yS))
+        
+    return map_x, map_y
+# do the unwarping 
+def unwarp(img,xmap,ymap):
+    output = cv2.remap(img,xmap,ymap,cv2.INTER_LINEAR)
+    return output
+
 
 def getImage(): #return the image
     if cv2.getWindowProperty("flow", 0) >= 0:
         _,frame=camera.read()
+        frame = unwarp(frame,xmap,ymap) #get panoramic
+        frame=cv2.flip(frame,0)
         #add in any preprocessing here
         frame=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
         scale_percent = 50 # percent of original size
@@ -160,6 +193,31 @@ def getOpticalFlow(im1,im2): #get the optical flow from previous, current
     horz = cv2.normalize(flow[...,0], None, 0, 255, cv2.NORM_MINMAX) #horizontal flow
     horz = horz.astype('uint8')
     return horz
+
+#disp = (820,616)
+vals = []
+last = (0,0)
+# center of the "donut"    
+Cx = 410
+Cy = 308
+# Inner donut radius
+R1x = 461
+R1y = 336
+R1 = int(R1x-Cx)
+# outer donut radius
+R2x = 153
+R2y = 342
+R2 = int(R2x-Cx)
+# our input and output image siZes
+Wd = abs(int(2.0*((R2+R1)/2)*np.pi))
+Hd = abs(int(R2-R1))
+Ws = 616
+Hs = 820
+# build the pixel map, this could be sped up
+print ("BUILDING MAP!")
+xmap,ymap = buildMap(Ws,Hs,Wd,Hd,R1,R2,Cx,Cy)
+print ("MAP DONE!")
+
 ###########
 #Define needed variables
 ###########
