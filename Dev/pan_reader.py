@@ -70,6 +70,6 @@ xmap,ymap = buildMap(Ws,Hs,Wd,Hd,R1,R2,Cx,Cy)
 print ("MAP DONE!")
 # do an unwarping and show it to us
 result = unwarp(img,xmap,ymap)
-cv2.imwrite('/home/jetsonnx/Documents/image.png',img)
+cv2.imwrite('/home/jetsonnx/Documents/image.png',result)
 
 
