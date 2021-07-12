@@ -192,7 +192,10 @@ def getOpticalFlow(im1,im2): #get the optical flow from previous, current
 
     horz = cv2.normalize(flow[...,0], None, 0, 255, cv2.NORM_MINMAX) #horizontal flow
     horz = horz.astype('uint8')
-    return horz
+    vert = cv2.normalize(flow[...,1], None, 0, 255, cv2.NORM_MINMAX)
+    vert = vert.astype('uint8')
+    
+    return vert
 
 #disp = (820,616)
 vals = []
