@@ -197,7 +197,7 @@ def getOpticalFlow(im1,im2): #get the optical flow from previous, current
     
     return vert
 
-#disp = (820,616)
+#disp = (820,616) #the image size from raspberry pi camera
 vals = []
 last = (0,0)
 # center of the "donut"    
@@ -300,9 +300,7 @@ disp1.display()
 disp2.image(image)
 disp2.display()
 
-_,frame=camera.read()
-
-
+frame=getImage()
 
 pixels=frame.shape[0:2]
 print(pixels)
@@ -325,7 +323,7 @@ print("Begin")
 for gen in range(Generations):
     #perform Reinforcement learning 
     current=getImage()
-    print("Gen",gen,current.shape)
+    print("Gen",gen)
     cv2.imshow("norm",current) #show grey scale
     op=getOpticalFlow(prvs,current) #get the optical flow image for input layer
     #Apply microbial
@@ -335,28 +333,31 @@ for gen in range(Generations):
     g2=mutation(gene_pop[n1])
 
     #apply gene 1
+    print("gene",n1,"trial")
     fitness1=0
     t=time.time()
-    current=time.time()
+    currentT=time.time()
     agent.set_genes(g1) #set the genes
-    while current-t<20: #give 20 seconds for trial
-        current=time.time()
+    while currentT-t<20: #give 20 seconds for trial
+        currentT=time.time()
         current=getImage()
         cv2.imshow("norm",current) #show grey scale
         op=getOpticalFlow(prvs,current) #get the optical flow image for input layer
-
+        action=agent.get_action(op)
+        print(action)
         prvs = copy.deepcopy(current)
     #apply gene 2
+    print("gene",n2,"trial")
     fitness2=0
     t=time.time()
-    current=time.time()
+    currentT=time.time()
     agent.set_genes(g2) #set the genes
-    while current-t<20: #give 20 seconds for trial
-        current=time.time()
+    while currentT-t<20: #give 20 seconds for trial
+        currentT=time.time()
         current=getImage()
         cv2.imshow("norm",current) #show grey scale
         op=getOpticalFlow(prvs,current) #get the optical flow image for input layer
-        
+        action=agent.get_action(op)
 
         prvs = copy.deepcopy(current)
     #copyover
@@ -373,4 +374,4 @@ for gen in range(Generations):
     
 
 camera.release()
-{"mode":"full","isActive":false}
+#{"mode":"full","isActive":false}
