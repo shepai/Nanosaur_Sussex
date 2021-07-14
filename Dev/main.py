@@ -28,9 +28,9 @@ import torch
 import random
 import time
 
-from adafruit_motorkit import MotorKit
-import Adafruit_GPIO.SPI as SPI
-import Adafruit_SSD1306
+#from adafruit_motorkit import MotorKit
+#import Adafruit_GPIO.SPI as SPI
+#import Adafruit_SSD1306
 import RPi.GPIO as GPIO
 
 from PIL import Image
@@ -46,7 +46,7 @@ camera=None
 def getBump():
     if GPIO.input(pinA)+GPIO.input(pinB) == 2: return False
     return True
-def fitness(self,numBumps,timeGiven):
+def fitness(numBumps,timeGiven):
     print((timeGiven-numBumps)/20)
     return (timeGiven-numBumps)/20
 
@@ -241,9 +241,16 @@ DC = 23
 SPI_PORT = 0
 SPI_DEVICE = 0
 
+#define buttona
+pinA = 33  # 
+pinB = 31  #
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(pinA, GPIO.IN)
+GPIO.setup(pinB, GPIO.IN)
+
 # 128x32 display with hardware I2C:
-disp1 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=8,rst=RST)
-disp2 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=1,rst=RST)
+#disp1 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=8,rst=RST)
+#disp2 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=1,rst=RST)
 
 #define camera
 camera=cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
@@ -253,63 +260,57 @@ while camera.isOpened()==False: pass #wait for it to load
 #define motors
 kit = MotorKit()
 
-#define buttona
-pinA = 33  # 
-pinB = 31  #
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(pinA, GPIO.IN)
-GPIO.setup(pinB, GPIO.IN)
-    
+
 ###########
 #Main loop
 ###########
 
 # Initialize library.
-disp1.begin()
-disp2.begin()
+#disp1.begin()
+#disp2.begin()
 # Clear display.
-disp1.clear()
-disp2.clear()
-disp1.display()
-disp2.display()
+#disp1.clear()
+#disp2.clear()
+#disp1.display()
+#disp2.display()
 
 # Create blank image for drawing.
 # Make sure to create image with mode '1' for 1-bit color.
-width = disp1.width
-height = disp1.height
-image = Image.new('1', (width, height))
+#width = disp1.width
+#height = disp1.height
+#image = Image.new('1', (width, height))
 
 # Get drawing object to draw on image.
-draw = ImageDraw.Draw(image)
+#draw = ImageDraw.Draw(image)
 
 # Draw a black filled box to clear the image.
-draw.rectangle((0,0,width,height), outline=0, fill=0)
+#draw.rectangle((0,0,width,height), outline=0, fill=0)
 
 # Draw some shapes.
 # First define some constants to allow easy resizing of shapes.
-padding = 2
-shape_width = 20
-top = padding
-bottom = height-padding
+#padding = 2
+#shape_width = 20
+#top = padding
+#bottom = height-padding
 # Move left to right keeping track of the current x position for drawing shapes.
-x = padding
+#x = padding
 
 
 # Load default font.
-font = ImageFont.load_default()
+#font = ImageFont.load_default()
 
 
 # Write two lines of text.
-draw.text((x, top),    'NANOSAUR',  font=font, fill=255)
-draw.text((x, top+20), 'PANORAMASAURUS NX!', font=font, fill=255)
+#draw.text((x, top),    'NANOSAUR',  font=font, fill=255)
+#draw.text((x, top+20), 'PANORAMASAURUS NX!', font=font, fill=255)
 
 # Display image.
-disp1.image(image)
-disp1.display()
+#disp1.image(image)
+#disp1.display()
 
 # Display image.
-disp2.image(image)
-disp2.display()
+#disp2.image(image)
+#disp2.display()
 
 frame=getImage()
 
