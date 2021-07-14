@@ -316,8 +316,8 @@ pop_size=10
 
 gene_pop = []
 
-#for i in range(pop_size): #vary from 10 to 20 depending on purpose of robot
-#  gene_pop.append(np.random.normal(0, 0.1, (agent.num_genes)))#create
+for i in range(pop_size): #vary from 10 to 20 depending on purpose of robot
+  gene_pop.append(np.random.normal(0, 0.1, (agent.num_genes)))#create
 
 Generations=500
 print("Begin")
@@ -328,13 +328,49 @@ for gen in range(Generations):
     print("Gen",gen,current.shape)
     cv2.imshow("norm",current) #show grey scale
     op=getOpticalFlow(prvs,current) #get the optical flow image for input layer
-    #op_grey = cv2.cvtColor(op,cv2.COLOR_BGR2GRAY)
+    #Apply microbial
+    n1=random.randint(0,len(gene_pop)-1)
+    n2=random.randint(0,len(gene_pop)-1)
+    g1=mutation(gene_pop[n1])
+    g2=mutation(gene_pop[n1])
+
+    #apply gene 1
+    fitness1=0
+    t=time.time()
+    current=time.time()
+    agent.set_genes(g1) #set the genes
+    while current-t<20: #give 20 seconds for trial
+        current=time.time()
+        current=getImage()
+        cv2.imshow("norm",current) #show grey scale
+        op=getOpticalFlow(prvs,current) #get the optical flow image for input layer
+
+        prvs = copy.deepcopy(current)
+    #apply gene 2
+    fitness2=0
+    t=time.time()
+    current=time.time()
+    agent.set_genes(g2) #set the genes
+    while current-t<20: #give 20 seconds for trial
+        current=time.time()
+        current=getImage()
+        cv2.imshow("norm",current) #show grey scale
+        op=getOpticalFlow(prvs,current) #get the optical flow image for input layer
+        
+
+        prvs = copy.deepcopy(current)
+    #copyover
+    if fitness1>fitness2:
+        gene_pop[n2]=copy.deepcopy(gene_pop[n1])
+    elif fitness2>fitness1:
+        gene_pop[n1]=copy.deepcopy(gene_pop[n2])
     
-    cv2.imshow("flow",op) #show grey scale
+    #cv2.imshow("flow",op) #show grey scale
     keyCode = cv2.waitKey(30) & 0xFF
     # Stop the program on the ESC key
     if keyCode == 27:
                 break
-    prvs = copy.deepcopy(current)
+    
 
 camera.release()
+{"mode":"full","isActive":false}
