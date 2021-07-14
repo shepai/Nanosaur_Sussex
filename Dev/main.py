@@ -28,9 +28,10 @@ import torch
 import random
 import time
 
-#from adafruit_motorkit import MotorKit
+from adafruit_motorkit import MotorKit
 import Adafruit_GPIO.SPI as SPI
 import Adafruit_SSD1306
+import RPi.GPIO as GPIO
 
 from PIL import Image
 from PIL import ImageDraw
@@ -42,8 +43,12 @@ camera=None
 #Define required functions for GA
 ###########
 
-def fitness(self):
-    pass
+def getBump():
+    if GPIO.input(pinA)+GPIO.input(pinB) == 2: return False
+    return True
+def fitness(self,numBumps,timeGiven):
+    print((timeGiven-numBumps)/20)
+    return (timeGiven-numBumps)/20
 
 def mutation(gene, mean=0, std=0.1):
     gene = gene + np.random.normal(mean, std, size=gene.shape) #mutate the gene via normal 
@@ -97,7 +102,7 @@ class Agent:
         self.bias = torch.from_numpy(b) #assign biases
 
     def forward(self, x):
-        x = torch.from_numpy(x).unsqueeze(0)
+        x = torch.from_numpy(x.flatten()/255).unsqueeze(0)
         x=torch.mm(x, self.weights.T) #first layer
         return torch.mm(x,self.weights2.T) + self.bias #secon layer
         
@@ -174,7 +179,6 @@ def unwarp(img,xmap,ymap):
 
 
 def getImage(): #return the image
-    if cv2.getWindowProperty("flow", 0) >= 0:
         _,frame=camera.read()
         frame = unwarp(frame,xmap,ymap) #get panoramic
         frame=cv2.flip(frame,0)
@@ -247,8 +251,15 @@ while camera.isOpened()==False: pass #wait for it to load
 
 
 #define motors
-#kit = MotorKit()
+kit = MotorKit()
 
+#define buttona
+pinA = 33  # 
+pinB = 31  #
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(pinA, GPIO.IN)
+GPIO.setup(pinB, GPIO.IN)
+    
 ###########
 #Main loop
 ###########
@@ -304,8 +315,6 @@ frame=getImage()
 
 pixels=frame.shape[0:2]
 print(pixels)
-cv2.namedWindow("norm", cv2.WINDOW_AUTOSIZE)
-cv2.namedWindow("flow", cv2.WINDOW_AUTOSIZE)
 
 prvs=getImage()
 
@@ -338,28 +347,52 @@ for gen in range(Generations):
     t=time.time()
     currentT=time.time()
     agent.set_genes(g1) #set the genes
-    while currentT-t<20: #give 20 seconds for trial
+    while currentT-t<20 and getBump()==False: #give 20 seconds for trial
         currentT=time.time()
         current=getImage()
         cv2.imshow("norm",current) #show grey scale
         op=getOpticalFlow(prvs,current) #get the optical flow image for input layer
         action=agent.get_action(op)
-        print(action)
+        if action[0]==0:
+            #motor 1 forward
+            kit.motor1.throttle = 0.80
+        else:
+            #motor 1 back
+            kit.motor1.throttle = -0.80
+        if action[1]==0:
+            #motor 2 forward
+            kit.motor3.throttle = 0.80
+        else:
+            #motor 2 back
+            kit.motor3.throttle = -0.80
         prvs = copy.deepcopy(current)
+    fitness1=fitness(1,currentT-t)
     #apply gene 2
     print("gene",n2,"trial")
     fitness2=0
     t=time.time()
     currentT=time.time()
     agent.set_genes(g2) #set the genes
-    while currentT-t<20: #give 20 seconds for trial
+    while currentT-t<20 and getBump()==False: #give 20 seconds for trial
         currentT=time.time()
         current=getImage()
         cv2.imshow("norm",current) #show grey scale
         op=getOpticalFlow(prvs,current) #get the optical flow image for input layer
         action=agent.get_action(op)
-
+        if action[0]==0:
+            #motor 1 forward
+            kit.motor1.throttle = 0.80
+        else:
+            #motor 1 back
+            kit.motor1.throttle = -0.80
+        if action[1]==0:
+            #motor 2 forward
+            kit.motor3.throttle = 0.80
+        else:
+            #motor 2 back
+            kit.motor3.throttle = -0.80
         prvs = copy.deepcopy(current)
+    fitness2=fitness(1,currentT-t)
     #copyover
     if fitness1>fitness2:
         gene_pop[n2]=copy.deepcopy(gene_pop[n1])
