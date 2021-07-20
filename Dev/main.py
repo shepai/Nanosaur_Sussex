@@ -323,9 +323,16 @@ agent=Agent(pixels[0]*pixels[1],100,2) #h*w inputs for pixels
 pop_size=10
 
 gene_pop = []
+fitness_index=[0 for i in range(pop_size)]
 
-for i in range(pop_size): #vary from 10 to 20 depending on purpose of robot
-  gene_pop.append(np.random.normal(0, 0.1, (agent.num_genes)))#create
+#check if genes exist in file
+try:
+    for i in range(pop_size):
+        f=np.load(str(i)+'.npy')
+        gene_pop.append(copy.deepcopy(f))
+except: #otherwise create
+    for i in range(pop_size): #vary from 10 to 20 depending on purpose of robot
+      gene_pop.append(np.random.normal(0, 0.1, (agent.num_genes)))#create
 
 Generations=500
 print("Begin")
@@ -368,6 +375,7 @@ for gen in range(Generations):
             kit.motor3.throttle = -0.80
         prvs = copy.deepcopy(current)
     fitness1=fitness(1,currentT-t)
+    fitness_index[n1]=fitness1 #keep track of fitnesses
     #apply gene 2
     print("gene",n2,"trial")
     fitness2=0
@@ -394,6 +402,7 @@ for gen in range(Generations):
             kit.motor3.throttle = -0.80
         prvs = copy.deepcopy(current)
     fitness2=fitness(1,currentT-t)
+    fitness_index[n2]=fitness1
     #copyover
     if fitness1>fitness2:
         gene_pop[n2]=copy.deepcopy(gene_pop[n1])
@@ -409,3 +418,8 @@ for gen in range(Generations):
 
 camera.release()
 #{"mode":"full","isActive":false}
+{"mode":"full","isActive":false}
+for i in range(pop_size): #save all the genes
+      np.save(str(i),gene_pop[i])
+
+np.save(str(i),np.array(fitness_index)) #save fitnesses
