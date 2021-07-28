@@ -109,21 +109,22 @@ class agent:
         return np.array(arr)
 
 
+
 def show_points(points,agent):
     plt.cla()
     for p in points:
         plt.scatter(p[0],p[1],c="y")
     plt.scatter(agent.x,agent.y,c="r")
-    
+    plt.pause(0.1)
 ##generate enviroment
 points=[]
 for i in range(600):
     randPoint=[random.randint(-50,50),random.randint(-50,50)]
     points.append(copy.deepcopy(randPoint))
-    #plt.scatter(randPoint[0],randPoint[1],c="y",s=20)
+    plt.scatter(randPoint[0],randPoint[1],c="y",s=20)
 if [0,0] in points:
     points.remove([0,0])
-#plt.scatter(0,0,c="r",s=20)
+plt.scatter(0,0,c="r",s=20)
 a=agent()
 pixels=a.get_image(points).shape
 ag=Agent(pixels[0],10,2) #h*w inputs for pixels
@@ -167,7 +168,7 @@ for gen in range(Generations):
         current=a.get_image(points)
         action=ag.get_action(current)
         a.set_vector(action[0],action[1])
-        
+        show_points(points,a)
         prvs = copy.deepcopy(current)
     fitness1=fitness(1,currentT-t)
     if fitness1> fitness_index[n1]: fitness_index[n1]=fitness1 #keep track of fitnesses
@@ -182,7 +183,7 @@ for gen in range(Generations):
         current=a.get_image(points)
         action=ag.get_action(current)
         a.set_vector(action[0],action[1])
-        
+        show_points(points,a)
         prvs = copy.deepcopy(current)
     fitness2=fitness(1,currentT-t)
     if fitness2> fitness_index[n2]: fitness_index[n2]=fitness1
@@ -207,3 +208,5 @@ for i in range(pop_size): #save all the genes
       np.save(str(i),gene_pop[i])
 
 np.save(str(i),np.array(fitness_index)) #save fitnesses
+
+plt.show()
