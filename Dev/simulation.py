@@ -169,6 +169,7 @@ for gen in range(Generations):
         action=ag.get_action(current)
         a.set_vector(action[0],action[1])
         show_points(points,a)
+        time.sleep(0.1)
         prvs = copy.deepcopy(current)
     fitness1=fitness(1,currentT-t)
     if fitness1> fitness_index[n1]: fitness_index[n1]=fitness1 #keep track of fitnesses
@@ -184,6 +185,7 @@ for gen in range(Generations):
         action=ag.get_action(current)
         a.set_vector(action[0],action[1])
         show_points(points,a)
+        time.sleep(0.1)
         prvs = copy.deepcopy(current)
     fitness2=fitness(1,currentT-t)
     if fitness2> fitness_index[n2]: fitness_index[n2]=fitness1
