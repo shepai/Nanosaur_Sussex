@@ -1,3 +1,15 @@
+"""
+Simulation code for Nanosaur JRA
+
+Code By Dexter Shepherd
+
+Evolving navigation via motor control and simulated radar.
+
+uncomment anything to do with plt to make it run faster, as well as remove time.sleep
+plt left in for visualisation tool.
+
+"""
+
 import matplotlib.pyplot as plt
 import math
 import time
