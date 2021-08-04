@@ -242,12 +242,14 @@ SPI_PORT = 0
 SPI_DEVICE = 0
 
 #define buttona
-pinA = 33  # 
-pinB = 31  #
-GPIO.setmode(GPIO.BOARD)
+pinA = "SOC_GPIO42" #"GPIO_PE6" #33  # 
+pinB = "SOC_GPIO54" #"GPIO_PZ0" #31  #
+#print("board",GPIO.TEGRA_SOC)
+GPIO.setmode(GPIO.TEGRA_SOC)
 GPIO.setup(pinA, GPIO.IN)
 GPIO.setup(pinB, GPIO.IN)
 
+from adafruit_motorkit import MotorKit
 # 128x32 display with hardware I2C:
 #disp1 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=8,rst=RST)
 #disp2 = Adafruit_SSD1306.SSD1306_128_32(i2c_bus=1,rst=RST)
@@ -403,6 +405,7 @@ for gen in range(Generations):
         prvs = copy.deepcopy(current)
     fitness2=fitness(1,currentT-t)
     fitness_index[n2]=fitness1
+    print("fitnesses",fitness1,fitness2)
     #copyover
     if fitness1>fitness2:
         gene_pop[n2]=copy.deepcopy(gene_pop[n1])
@@ -413,7 +416,9 @@ for gen in range(Generations):
     keyCode = cv2.waitKey(30) & 0xFF
     # Stop the program on the ESC key
     if keyCode == 27:
-                break
+        kit.motor1.throttle = 0
+        kit.motor3.throttle = 0
+        break
     
 
 camera.release()
